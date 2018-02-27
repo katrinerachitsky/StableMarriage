@@ -18,7 +18,7 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>, domain: 
      {
         var highestPrefWoman: int := preferences[currentWoman]; // starting at index 0 of preferences list, highestPreferred woman will be named first
         if (highestPrefWoman !in matched.Values){ // if the highestPreferred woman is not found in the matched mapping
-          matched[currentMan := highestPrefWoman]; // add current Man with his highestpreferred woman to mapping
+          matched := matched[currentMan := highestPrefWoman]; // add current Man with his highestpreferred woman to mapping
         }
       }
     }

@@ -1,0 +1,12 @@
+Initially all m E M and w E W are free
+While there is a man m who is free and hasn’t proposed to every woman
+Choose such a man m
+Let w be the highest-ranked woman in m’s preference list
+to whom m has not yet proposed If ~ is free then
+(m, ~) become engaged
+Else ~ is currently engaged to m’
+If ~ prefers m’ to m then m remains free
+Else w prefers m to m’ (m,~) become engaged nlI becomes free
+Endif Endif
+Endwhile
+Return the set S of engaged pairs
