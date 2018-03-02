@@ -1,6 +1,7 @@
 
 method matching(men: map<int, array<int>>, women: map<int, array<int>>, domain: int) returns (matched: map<int, int>)  // matched array is a mapping of women to their respective mate
   // require each person on preference list to be in the women keys mapping, and vice versa for men
+  decreases *;
   requires |men| != 0;
   requires |women| != 0;
   requires 0 in men && 0 in women; // both men and women need to start at 0 (man 0 and woman 0)
@@ -10,12 +11,14 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>, domain: 
   {
     var currentMan: int := 0;
     while (currentMan !in matched && currentMan in men)
-      decreases forall i :: 0 <= i < |men| ==> i in men && i !in matched; // amount of free men will decrease
+      decreases *;
+      //decreases forall i :: 0 <= i < |men| ==> i in men && i !in matched; // amount of free men will decrease
     {
       var preferences: array := men[currentMan]; // get preference list for current man
       var currentPrefIndex: int := 0; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
       while currentPrefIndex < preferences.Length // while we have not reached the end of the preferences list
-        decreases (preferences.Length - currentPrefIndex); // loop termination will occur, because preference list will be iterated through and amount of women to choose from gets smaller
+        decreases *;
+        //decreases (preferences.Length - currentPrefIndex); // loop termination will occur, because preference list will be iterated through and amount of women to choose from gets smaller
      {
         var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
         if (currentWoman !in matched.Keys) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
