@@ -1,20 +1,19 @@
-method main(){
+method Main() {
   print "hello, Dafny\n";
+  assert 1 < 2;
 }
 
-method matching(given_men: map<int, array<int>>, given_women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
+method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
   // require each person on preference list to be in the women keys mapping, and vice versa for men
   decreases *;
-  requires |given_men| != 0;
-  requires |given_women| != 0;
-  requires 0 in given_men && 0 in given_women; // both men and women need to start at 0 (man 0 and woman 0)
-  requires forall i :: 0 <= i < |given_men| ==> i in given_men && given_men[i] != null && given_men[i].Length == |given_men| // checks that for each possible key in domain, this key exists in the mapping, that the array (value) associated with this key is non-empty and that it contains exactly the amount of entries as each map (the domain)
-  requires forall i :: 0 <= i < |given_women| ==> i in given_women && given_women[i] != null && given_women[i].Length == |given_women| // checks the same for women's list
+  requires |men| != 0;
+  requires |women| != 0;
+  requires 0 in men && 0 in women; // both men and women need to start at 0 (man 0 and woman 0)
+  requires forall i :: 0 <= i < |men| ==> i in men && men[i] != null && men[i].Length == |men| // checks that for each possible key in domain, this key exists in the mapping, that the array (value) associated with this key is non-empty and that it contains exactly the amount of entries as each map (the domain)
+  requires forall i :: 0 <= i < |women| ==> i in women && women[i] != null && women[i].Length == |women| // checks the same for women's list
   //ensures forall i :: 0 <= i < domain ==> i in matched && exists j :: 0 <= j < domain && matched[i] == j // ensures that the resulting matching includes all original participants (everyone has a match)
   {
     var currentMan: int := 0;
-    var men := given_men;
-    var women := given_women;
     var matched: map<int,int>;
     while (currentMan !in matched.Values && currentMan in men)
       decreases *;
@@ -64,4 +63,3 @@ method Find(a: array<int>, key: int) returns (index: int)
    }
    index := -1;
 }
-
