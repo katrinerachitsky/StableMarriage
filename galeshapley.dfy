@@ -3,29 +3,29 @@ method Main()
 decreases *{
   print "hello, Dafny\n";
   assert 1 < 2;
-  var a := new int[2] ;
-  a[0], a[1] := 0, 1;
-  var b := new int[2] ;
-  b[0], b[1] := 1, 0;
-  var men: map<int, array<int>> := map[0 := a, 1 := b];
-  var women: map<int, array<int>> := map[0 := a, 1 := b];
+  var man0, man1, man2 := new int[3], new int[3], new int[3] ;
+  man0[0], man0[1], man0[2] := 0, 1, 2;
+  man1[0], man1[1], man1[2] := 1, 0, 2;
+  man2[0], man2[1], man2[2] := 0, 1, 2;
+  var woman0, woman1, woman2 := new int[3], new int[3], new int[3] ;
+  woman0[0], woman0[1], woman0[2] := 1, 0, 2;
+  woman1[0], woman1[1], woman1[2] := 0, 1, 2;
+  woman2[0], woman2[1], woman2[2] := 0, 1, 2;
+
+  var men: map<int, array<int>> := map[0 := man0, 1 := man1, 2 := man2];
+  var women: map<int, array<int>> := map[0 := woman0, 1 := woman1, 2:= woman2];
   var results := matching(men, women);
 
   var i := 0;
-  print "hi";
+  print "\n final matches are: \n";
   while (i < |results|) && i in results {
-    print "man ";
+    print " man ";
     print i;
-    print "woman ";
+    print " woman ";
     print results[i];
     print "\n";
     i := i + 1;
   }
-  //var preflist2: array<int> := [1,0];
-   //var men: map<int, array<int>> := map[0 := preflist, 1 := preflist2];
-   //var women := map[0 := preflist, 1 := preflist2];
-   //var results := matching(men, women);
-  //var men: map<int, array<int>> := {0 := preflist};
 }
 
 method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
@@ -46,47 +46,17 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
     //var unmarried_men := men;
     var matched: map<int,int>;
     var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-    while (|matched| < |men|) // while cardinality of matched is less than that of men
+    while (|matched| < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
       //invariant currentMan in men.Keys && currentMan !in matched.Values;
       //invariant |matched| <= |men|
       //decreases (|women| - |matched|);
       decreases *; 
       //decreases forall i :: 0 <= i < |men| ==> i in men && i !in matched; // amount of free men will decrease
     {
-      print "are all people matched yet? ";
-      print (|matched| == |men|);
-      print "\n";
-      print "checking whether or not new man is eligible\n";
-      print "is ";
-      print currentMan;
-      print " in men.Keys? ";
-      print (currentMan in men.Keys);
-      print "\nis ";
-      print currentMan;
-      print " not in matched? ";
-      print (currentMan !in matched.Values);
-      print "\n";
-      if (currentMan in men.Keys && currentMan !in matched.Values) {
         print "we are now on man ";
         print currentMan;
         print "\n";
         var preferences: array := men[currentMan]; // get preference list for current man
-        /*print "this is the man's preference list: \nman: ";
-        print currentMan;
-        print " preference list: ";
-        var j := 0;
-        while (j < preferences.Length)
-          decreases (preferences.Length - j);
-          {
-          print "index ";
-          print j;
-          print " woman on list ";
-          print preferences[j];
-          print "\n";
-          j := j + 1;
-        }
-        // PUT IT HERE
-        print "\n";*/
         var currentPrefIndex: int := 0; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
         while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
           decreases (preferences.Length - currentPrefIndex)
@@ -126,7 +96,7 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
             }
         }
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
-      }}
+      }
       // man should be matched by this point
       currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
       print "new man is ";
