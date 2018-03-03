@@ -6,12 +6,13 @@ decreases *{
   var a := new int[2] ;
   a[0], a[1] := 0, 1;
   var b := new int[2] ;
-  a[0], a[1] := 1, 0;
+  b[0], b[1] := 1, 0;
   var men: map<int, array<int>> := map[0 := a, 1 := b];
   var women: map<int, array<int>> := map[0 := a, 1 := b];
   var results := matching(men, women);
 
   var i := 0;
+  print "hi";
   while (i < |results|) && i in results {
     print "man ";
     print i;
@@ -52,19 +53,63 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
       decreases *; 
       //decreases forall i :: 0 <= i < |men| ==> i in men && i !in matched; // amount of free men will decrease
     {
-      if (currentMan in men.Keys && currentMan !in matched.Values){
-      var preferences: array := men[currentMan]; // get preference list for current man
-      var currentPrefIndex: int := 0; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
-      while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
-        decreases (preferences.Length - currentPrefIndex)
-        //decreases *;
-        //decreases (preferences.Length - currentPrefIndex); // loop termination will occur, because preference list will be iterated through and amount of women to choose from gets smaller
-     {
-        var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
-        if (currentWoman !in matched.Keys && currentWoman in women) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
-          matched := matched[currentWoman := currentMan]; // add current highestpreferred woman and current man to mapping
-          break;
-        } else if (currentWoman in matched.Keys && currentWoman in women) { // if current woman is matched
+      print "are all people matched yet? ";
+      print (|matched| == |men|);
+      print "\n";
+      print "checking whether or not new man is eligible\n";
+      print "is ";
+      print currentMan;
+      print " in men.Keys? ";
+      print (currentMan in men.Keys);
+      print "\nis ";
+      print currentMan;
+      print " not in matched? ";
+      print (currentMan !in matched.Values);
+      print "\n";
+      if (currentMan in men.Keys && currentMan !in matched.Values) {
+        print "we are now on man ";
+        print currentMan;
+        print "\n";
+        var preferences: array := men[currentMan]; // get preference list for current man
+        /*print "this is the man's preference list: \nman: ";
+        print currentMan;
+        print " preference list: ";
+        var j := 0;
+        while (j < preferences.Length)
+          decreases (preferences.Length - j);
+          {
+          print "index ";
+          print j;
+          print " woman on list ";
+          print preferences[j];
+          print "\n";
+          j := j + 1;
+        }
+        // PUT IT HERE
+        print "\n";*/
+        var currentPrefIndex: int := 0; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
+        while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
+          decreases (preferences.Length - currentPrefIndex)
+        {
+          print "we are looking at preference array for man: ";
+          print currentMan;
+          print ", at this index: ";
+          print currentPrefIndex;
+          print "\n";
+          var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
+          print "woman at that index, on this man's preference list is ";
+          print currentWoman;
+          print "\n";
+          if (currentWoman !in matched.Keys && currentWoman in women) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
+            print "woman is not currently engaged\n";
+            matched := matched[currentWoman := currentMan]; // add current highestpreferred woman and current man to mapping
+            print "woman: ";
+            print currentWoman;
+            print" man: ";
+            print currentMan;
+            print "\n";
+            break;
+          } else if (currentWoman in matched.Keys && currentWoman in women) { // if current woman is matched
             var preferences: array := women[currentWoman]; // get woman's preference list
             var man_matched: int := matched[currentWoman]; // find woman's current mate
             var currentMan_index: int:= Find(preferences, currentMan); // get index on preference list of woman for current man
@@ -72,13 +117,21 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
             if (currentMan_index < man_matched_index) { // if index of current man is higher on preference list than the matched mate
               matched := map i | i in matched && i != currentWoman :: matched[i]; // remove original woman-man pair from matched
               matched := matched[currentWoman := currentMan]; // add current Man with his highestpreferred woman to mapping
+              print "woman: ";
+              print currentWoman;
+              print" man: ";
+              print currentMan;
+              print "\n";
               break;
             }
         }
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }}
       // man should be matched by this point
-      var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
+      currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
+      print "new man is ";
+      print currentMan;
+      print "\n";
     } // end of men needing a match
     matched_output := matched;
     return matched_output;
