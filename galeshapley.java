@@ -1,8 +1,9 @@
 
 method Main() 
 decreases *{
-  print "hello, Dafny\n";
-  assert 1 < 2;
+  
+  /*test 1*/
+  /*
   var man0, man1, man2 := new int[3], new int[3], new int[3] ;
   man0[0], man0[1], man0[2] := 0, 1, 2;
   man1[0], man1[1], man1[2] := 1, 0, 2;
@@ -19,13 +20,66 @@ decreases *{
   var i := 0;
   print "\n final matches are: \n";
   while (i < |results|) && i in results {
-    print " man ";
-    print i;
     print " woman ";
+    print i;
+    print " man ";
     print results[i];
     print "\n";
     i := i + 1;
-  }
+  }*/ /* solution is man 0, woman 0, man 1 woman 1 man 2 woman 2 */
+
+  /*test 2*/
+  /*
+  var man0, man1, man2, man3 := new int[4], new int[4], new int[4], new int[4] ;
+  man0[0], man0[1], man0[2], man0[3] := 2,3,1,0;
+  man1[0], man1[1], man1[2], man1[3] := 3,2,0,1;
+  man2[0], man2[1], man2[2], man2[3] := 0,2,1,3;
+  man3[0], man3[1], man3[2], man3[3] := 1,3,0,2;
+
+  var woman0, woman1, woman2, woman3 := new int[4], new int[4], new int[4], new int[4] ;
+  woman0[0], woman0[1], woman0[2], woman0[3] := 3,0,1,2;
+  woman1[0], woman1[1], woman1[2], woman1[3] := 2,1,0,3;
+  woman2[0], woman2[1], woman2[2], woman2[3] := 2,1,0,3;
+  woman3[0], woman3[1], woman3[2], woman3[3] := 3,0,1,2;
+
+  var men: map<int, array<int>> := map[0 := man0, 1 := man1, 2 := man2, 3 := man3];
+  var women: map<int, array<int>> := map[0 := woman0, 1 := woman1, 2:= woman2, 3 := woman3];
+  var results := matching(men, women);
+  var i := 0;
+  print "\n final matches are: \n";
+  while (i < |results|) && i in results {
+    print " woman ";
+    print i;
+    print " man ";
+    print results[i];
+    print "\n";
+    i := i + 1;
+  }*/ /*solution is man 0 woman 2, man 1 woman 3, man 2 woman 0, man 3 woman 1*/
+  /*test 3*/
+  /*
+  var man0, man1, man2 := new int[3], new int[3], new int[3] ;
+  man0[0], man0[1], man0[2] := 0, 1, 2;
+  man1[0], man1[1], man1[2] := 0,2,1;
+  man2[0], man2[1], man2[2] := 1,2,0;
+  var woman0, woman1, woman2 := new int[3], new int[3], new int[3] ;
+  woman0[0], woman0[1], woman0[2] := 1, 0, 2;
+  woman1[0], woman1[1], woman1[2] := 2,1,0;
+  woman2[0], woman2[1], woman2[2] := 1,0,2;
+
+  var men: map<int, array<int>> := map[0 := man0, 1 := man1, 2 := man2];
+  var women: map<int, array<int>> := map[0 := woman0, 1 := woman1, 2:= woman2];
+  var results := matching(men, women);
+
+  var i := 0;
+  print "\n final matches are: \n";
+  while (i < |results|) && i in results {
+    print " woman ";
+    print i;
+    print " man ";
+    print results[i];
+    print "\n";
+    i := i + 1;
+  }*/ /* solution is  woman 0 man 1, woman 1 man 2, woman 2 man 0*/
 }
 
 method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
@@ -80,12 +134,26 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
             print "\n";
             break;
           } else if (currentWoman in matched.Keys && currentWoman in women) { // if current woman is matched
+            print "woman is currently engaged\n";
             var preferences: array := women[currentWoman]; // get woman's preference list
             var man_matched: int := matched[currentWoman]; // find woman's current mate
+            print "woman ";
+            print currentWoman;
+            print " is currently matched with ";
+            print man_matched;
+            print "\n";
             var currentMan_index: int:= Find(preferences, currentMan); // get index on preference list of woman for current man
             var man_matched_index: int := Find(preferences, man_matched); // get index on preference list of woman for current mate
             if (currentMan_index < man_matched_index) { // if index of current man is higher on preference list than the matched mate
+              print "she prefers ";
+              print currentMan;
+              print " over ";
+              print man_matched;
+              print "\n";
               matched := map i | i in matched && i != currentWoman :: matched[i]; // remove original woman-man pair from matched
+              print "pairing removed from matched list? ";
+              print (currentWoman !in matched);
+              print "\n";
               matched := matched[currentWoman := currentMan]; // add current Man with his highestpreferred woman to mapping
               print "woman: ";
               print currentWoman;
@@ -94,14 +162,11 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
               print "\n";
               break;
             }
-        }
+            print "woman prefers her current match over currentMan\n";        }
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }
       // man should be matched by this point
       currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-      print "new man is ";
-      print currentMan;
-      print "\n";
     } // end of men needing a match
     matched_output := matched;
     return matched_output;
