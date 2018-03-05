@@ -1,4 +1,3 @@
-
 method Main() 
 decreases *{
   
@@ -56,7 +55,7 @@ decreases *{
     i := i + 1;
   }*/ /*solution is man 0 woman 2, man 1 woman 3, man 2 woman 0, man 3 woman 1*/
   /*test 3*/
-  /*
+  
   var man0, man1, man2 := new int[3], new int[3], new int[3] ;
   man0[0], man0[1], man0[2] := 0, 1, 2;
   man1[0], man1[1], man1[2] := 0,2,1;
@@ -79,7 +78,7 @@ decreases *{
     print results[i];
     print "\n";
     i := i + 1;
-  }*/ /* solution is  woman 0 man 1, woman 1 man 2, woman 2 man 0*/
+  } /* solution is  woman 0 man 1, woman 1 man 2, woman 2 man 0*/
 }
 
 method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
@@ -89,101 +88,79 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
   requires |women| != 0;
   requires |men| == |women| // requires cardinality of men and women maps to be equal
   //requires 0 in men && 0 in women; // both men and women need to start at 0 (man 0 and woman 0)
-  requires -1 !in men && -1 !in women;
+  //requires -1 !in men && -1 !in women; // requires no negative numbers
   requires forall i :: 0 <= i < |men| ==> i in men && men[i] != null && men[i].Length == |men| // checks that for each possible key in domain, this key exists in the mapping, that the array (value) associated with this key is non-empty and that it contains exactly the amount of entries as each map (the domain)
   requires forall i :: 0 <= i < |women| ==> i in women && women[i] != null && women[i].Length == |women| // checks the same for women's list
+  //ensures |matched_output| == |men|
   //ensures forall i :: 0 <= i < |women| ==> i in matched_output.Keys;
   //ensures forall i :: 0 <= i < |men| ==> i in matched_output.Values;
   //ensures forall i :: 0 <= i < domain ==> i in matched && exists j :: 0 <= j < domain && matched[i] == j // ensures that the resulting matching includes all original participants (everyone has a match)
   {
     
-    //var unmarried_men := men;
     var matched: map<int,int>;
     var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-    while (|matched| < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
-      //invariant currentMan in men.Keys && currentMan !in matched.Values;
-      //invariant |matched| <= |men|
-      //decreases (|women| - |matched|);
-      decreases *; 
-      //decreases forall i :: 0 <= i < |men| ==> i in men && i !in matched; // amount of free men will decrease
+    var couplesMatched: int := 0;
+    while (couplesMatched < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
+      invariant 0 <= couplesMatched <= |men|
+      //invariant couplesMatched <= |matched|
+      // having problems proving that on every iteration decreases, because it doesn't
+      // sometimes the amount of people matched stays the same
+      // so how do we prove termination?
+      // we know they stay the same sometimes because a better match is found, and one man gets taken off the matched list to get re-matched
+
+      //decreases (|men| - |matched|);
+      decreases *;
     {
-        print "we are now on man ";
-        print currentMan;
-        print "\n";
         var preferences: array := men[currentMan]; // get preference list for current man
         var currentPrefIndex: int := 0; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
         while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
+          invariant 0 <= currentPrefIndex <= preferences.Length
+          //invariant couplesMatched <= |matched|
+          //invariant forall i :: 0 <= i < preferences.Length ==> preferences[i] in women
+          //invariant forall i :: 0 <= i < currentPrefIndex ==> (preferences[currentPrefIndex]) in matched.Keys
           decreases (preferences.Length - currentPrefIndex)
         {
-          print "we are looking at preference array for man: ";
-          print currentMan;
-          print ", at this index: ";
-          print currentPrefIndex;
-          print "\n";
           var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
-          print "woman at that index, on this man's preference list is ";
-          print currentWoman;
-          print "\n";
           if (currentWoman !in matched.Keys && currentWoman in women) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
-            print "woman is not currently engaged\n";
             matched := matched[currentWoman := currentMan]; // add current highestpreferred woman and current man to mapping
-            print "woman: ";
-            print currentWoman;
-            print" man: ";
-            print currentMan;
-            print "\n";
+            //couplesMatched := couplesMatched + 1;
             break;
           } else if (currentWoman in matched.Keys && currentWoman in women) { // if current woman is matched
-            print "woman is currently engaged\n";
             var preferences: array := women[currentWoman]; // get woman's preference list
             var man_matched: int := matched[currentWoman]; // find woman's current mate
-            print "woman ";
-            print currentWoman;
-            print " is currently matched with ";
-            print man_matched;
-            print "\n";
             var currentMan_index: int:= Find(preferences, currentMan); // get index on preference list of woman for current man
             var man_matched_index: int := Find(preferences, man_matched); // get index on preference list of woman for current mate
             if (currentMan_index < man_matched_index) { // if index of current man is higher on preference list than the matched mate
-              print "she prefers ";
-              print currentMan;
-              print " over ";
-              print man_matched;
-              print "\n";
               matched := map i | i in matched && i != currentWoman :: matched[i]; // remove original woman-man pair from matched
-              print "pairing removed from matched list? ";
-              print (currentWoman !in matched);
-              print "\n";
+              couplesMatched := couplesMatched - 1;
               matched := matched[currentWoman := currentMan]; // add current Man with his highestpreferred woman to mapping
-              print "woman: ";
-              print currentWoman;
-              print" man: ";
-              print currentMan;
-              print "\n";
+              //couplesMatched := couplesMatched + 1;
               break;
             }
-            print "woman prefers her current match over currentMan\n";        }
+          }
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }
+      couplesMatched := couplesMatched + 1;
       // man should be matched by this point
       currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
+      /*if (|matched| == |men|){
+        assert (currentMan in men.Keys && currentMan !in matched.Values); 
+      }*/
     } // end of men needing a match
     matched_output := matched;
     return matched_output;
 }
 
 method getFreeMan(men: set<int>, engagedMen: set <int>) returns (index: int) 
-  // requires exists some index between 0 and men cardinality such that index in men
   requires |men| > 0;
   ensures index < |men| ==> index in men && index !in engagedMen;
-  //requires exists i :: 0 <= i < |men| && i in men && i !in engagedMen;
-  //ensures index < |men| ==> forall i :: 0 <= i < index && !(i in men && i !in engagedMen);
-  //ensures index >= |men| ==> !(exists i :: 0 <= i < |men| && i in men && i !in engagedMen); //forall i :: 0 <= i < |men| && !(i in men && i !in engagedMen);;
+  ensures index >= |men| ==> forall i :: 0 <= i < |men| ==> i !in men || i in engagedMen; // if index is larger than or equal to cardinality of men, all i from 0 to cardinality of men must either be in engagedMen or not in men at all
   {
   index := 0;
   while (index < |men|)
+  decreases |men| - index
   invariant 0 <= index <= |men|;
- // invariant forall i :: 0 <= i < index ==> ()
+  invariant forall i :: 0 <= i < index ==> i !in men || i in engagedMen // for any i less than the current index, we know either that i must not be in men OR that i is already in engagedMen
   {
     if (index in men && index !in engagedMen)
     {
@@ -194,7 +171,7 @@ method getFreeMan(men: set<int>, engagedMen: set <int>) returns (index: int)
   }
 }
 
-method Find(a: array<int>, key: int) returns (index: int)
+method Find(a: array<int>, key: int) returns (index: int) // found on website, takes an array a with a key int and returns the index at which the key appears in the array
    requires a != null
    ensures 0 <= index ==> index < a.Length && a[index] == key
    ensures index < 0 ==> forall k :: 0 <= k < a.Length ==> a[k] != key
