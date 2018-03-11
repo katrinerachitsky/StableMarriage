@@ -186,3 +186,23 @@ method Find(a: array<int>, key: int) returns (index: int) // found on website, t
    }
    index := -1;
 }
+
+method getFreeWoman(women: map<int,bool>) returns (index: int)
+  requires |women| > 0 // cardinality must be larger than 0
+  requires forall i :: 0 <= i < |women| ==> i in women // requires that all values from 0 - cardinality of women is in women keys
+  ensures index >= 0 ==> index in women && women[index] // if index is > 0, we know the index returned is in women and that the woman at that key has a value of true (meaning she's free to propose to)
+  ensures index < 0 ==> forall i :: 0 <= i < |women| && i in women ==> !women[i] // if index returned is less than 0, that means there were no free women (no women with 'true' value associated) in the map
+ {
+  index := 0;
+  while index < |women| && index in women // iterate through women in map
+  invariant 0 <= index <= |women|
+  invariant forall index :: 0 <= index < |women| ==> index in women // index is in women if we are between 0 and cardinality of women
+  invariant forall i :: 0 <= i < index ==> !women[i] // any 'i' under the current index implies women[i] is false (not free)
+   {
+      if (women[index]) { 
+        return index;  // woman is free
+      } 
+      index := index + 1; // go to next woman, this woman has already been attempted from this man
+   }
+   index := -1; // return -1 if there are no women left on this list (should never be exhausted, see gale-shapley proof about one man being left without a match)
+}
