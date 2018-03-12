@@ -121,13 +121,28 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
           //invariant forall i :: 0 <= i < currentPrefIndex ==> (preferences[currentPrefIndex]) in matched.Keys
           decreases (preferences.Length - currentPrefIndex)
         {
+          
           if (currentMan in indexLastAttempted){
+            if (currentPrefIndex <= indexLastAttempted[currentMan]){
+             print "man ";
+            print currentMan;
+            print " could've skipped this woman at index ";
+            print currentPrefIndex;
+            print ", he's already been left by her\n";
+            }
+            print "the last index attempted of man ";
+            print currentMan;
+            print " was ";
+            print indexLastAttempted[currentMan];
+            print "\n";
             print "man ";
             print currentMan;
             print " has last attempted to marry woman at index ";
             print indexLastAttempted[currentMan];
             print "\n";
+            
           }
+
           indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
           print "man ";
            print currentMan;
@@ -135,9 +150,17 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
           print currentPrefIndex;
           print "\n";
           var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
+          print" which is woman ";
+          print currentWoman;
+          print "\n";
           if (currentWoman !in matched.Keys && currentWoman in women) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
             matched := matched[currentWoman := currentMan]; // add current highestpreferred woman and current man to mapping
             //couplesMatched := couplesMatched + 1;
+            print "  man ";
+            print currentMan;
+            print " and woman ";
+            print currentWoman;
+            print " engaged\n";
             break;
           } else if (currentWoman in matched.Keys && currentWoman in women) { // if current woman is matched
             var preferences: array := women[currentWoman]; // get woman's preference list
@@ -148,10 +171,23 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
               matched := map i | i in matched && i != currentWoman :: matched[i]; // remove original woman-man pair from matched
               couplesMatched := couplesMatched - 1;
               matched := matched[currentWoman := currentMan]; // add current Man with his highestpreferred woman to mapping
+              print "  man ";
+              print currentMan;
+              print " and woman ";
+              print currentWoman;
+              print " engaged, she left man ";
+              print man_matched;
+              print "\n";
               //couplesMatched := couplesMatched + 1;
               break;
             }
           }
+        print "man ";
+              print currentMan;
+              print " and woman ";
+              print currentWoman;
+              print " not engaged, she preferred her current partner ";
+              print "\n";
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }
       couplesMatched := couplesMatched + 1;
