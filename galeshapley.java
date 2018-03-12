@@ -96,11 +96,19 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
   //ensures forall i :: 0 <= i < |men| ==> i in matched_output.Values;
   //ensures forall i :: 0 <= i < domain ==> i in matched && exists j :: 0 <= j < domain && matched[i] == j // ensures that the resulting matching includes all original participants (everyone has a match)
   {
-    
     var matched: map<int,int>;
     var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
     var couplesMatched: int := 0;
-    var indexLastAttempted: map<int,int>; // key is man, value is index in preference list of last woman proposed to
+    //var indexLastAttempted: map<int,int>; // key is man, value is index in preference list of last woman proposed to
+    /*forall i | 0 <= i < |men| && i in men
+    {
+      var indexLastAttempted := indexLastAttempted[i := 0];
+    }*/
+    //assert (indexLastAttempted.Keys == men.Keys);
+    var indexToBeAttempted := createIndexMap(men.Keys);
+    //assert (forall i :: 0 <= i < |indexLastAttempted| ==> i in indexLastAttempted && indexLastAttempted[i]==0)
+    
+    //forall i :: 0 <= i < |men| && i in men ==> indexLastAttempted := indexLastAttempted[i := 0];
     while (couplesMatched < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
       invariant 0 <= couplesMatched <= |men|
       //invariant couplesMatched <= |matched|
@@ -112,31 +120,19 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
       //decreases (|men| - |matched|);
       decreases *;
     {
-        var preferences: array := men[currentMan]; // get preference list for current man
-        var currentPrefIndex: int := 0;
-        /*if (currentMan in indexLastAttempted.Keys){ // if man hasn't attempted to match with anybody
-          currentPrefIndex := indexLastAttempted[currentMan];
-          print "man ";
-          print currentMan;
-          print " is on his ";
-          print currentPrefIndex;
-          print " iteration of his preference list\n";
-        }*/
-        while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
-          invariant 0 <= currentPrefIndex <= preferences.Length
-          //invariant 0 <= indexLastAttempted[currentMan] <= currentPrefIndex
+                var preferences: array := men[currentMan]; // get preference list for current man
+        var currentPrefIndex: int := indexToBeAttempted[currentMan]; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
+        
+        while (currentMan in indexToBeAttempted && currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
+          //invariant 0 <= currentPrefIndex <= preferences.Length
           decreases (preferences.Length - currentPrefIndex)
-
         {
-          indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
-          print "this index ";
-          print indexLastAttempted[currentMan];
-          print " was last attempted by man ";
-          print currentMan;
-          print "\n";
+          //var currentPrefIndex := indexLastAttemped[currentMan];
+          indexToBeAttempted := indexToBeAttempted[currentPrefIndex + 1];
           var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
           if (currentWoman !in matched.Keys && currentWoman in women) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
             matched := matched[currentWoman := currentMan]; // add current highestpreferred woman and current man to mapping
+            //couplesMatched := couplesMatched + 1;
             break;
           } else if (currentWoman in matched.Keys && currentWoman in women) { // if current woman is matched
             var preferences: array := women[currentWoman]; // get woman's preference list
@@ -147,10 +143,12 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
               matched := map i | i in matched && i != currentWoman :: matched[i]; // remove original woman-man pair from matched
               couplesMatched := couplesMatched - 1;
               matched := matched[currentWoman := currentMan]; // add current Man with his highestpreferred woman to mapping
+              //couplesMatched := couplesMatched + 1;
               break;
             }
           }
-        currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
+          currentPrefIndex := indexToBeAttempted[currentMan];
+      
       }
       couplesMatched := couplesMatched + 1;
       // man should be matched by this point
@@ -197,6 +195,22 @@ method Find(a: array<int>, key: int) returns (index: int) // found on website, t
       index := index + 1;
    }
    index := -1;
+}
+
+method createIndexMap(men: set<int>) returns (initialized: map<int,int>)
+  requires |men| > 0;
+  requires forall i :: 0 <= i < |men| ==> i in men
+  ensures forall i :: 0 <= i < |men| ==> i in initialized && initialized[i] == 0
+{
+   var index := 0;
+   while (index < |men|)
+    decreases |men| - index
+    invariant 0 <= index <= |men|
+    invariant forall i :: 0 <= i < index ==> i in initialized && initialized[i] == 0
+   {
+     initialized := initialized[index := 0];
+     index := index + 1;
+   }
 }
 
 method getFreeWoman(women: map<int,bool>) returns (index: int)
