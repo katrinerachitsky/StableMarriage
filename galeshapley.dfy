@@ -122,14 +122,14 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
           decreases (preferences.Length - currentPrefIndex)
         {
           
-          if (currentMan in indexLastAttempted){
-            if (currentPrefIndex <= indexLastAttempted[currentMan]){
+          if (currentMan !in indexLastAttempted || currentPrefIndex > indexLastAttempted[currentMan]){ // if this index in the preference list has already been attempted
+            /*if (currentPrefIndex <= indexLastAttempted[currentMan]){
              print "man ";
             print currentMan;
             print " could've skipped this woman at index ";
             print currentPrefIndex;
             print ", he's already been left by her\n";
-            }
+            //}
             print "the last index attempted of man ";
             print currentMan;
             print " was ";
@@ -139,11 +139,8 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
             print currentMan;
             print " has last attempted to marry woman at index ";
             print indexLastAttempted[currentMan];
-            print "\n";
-            
-          }
-
-          indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
+            print "\n";*/
+            indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
           print "man ";
            print currentMan;
           print" is currently trying to marry woman at index ";
@@ -182,12 +179,16 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
               break;
             }
           }
-        print "man ";
+            
+          }
+
+          
+        /*print "man ";
               print currentMan;
               print " and woman ";
               print currentWoman;
               print " not engaged, she preferred her current partner ";
-              print "\n";
+              print "\n";*/
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }
       couplesMatched := couplesMatched + 1;
