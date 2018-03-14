@@ -100,9 +100,7 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
     var matched: map<int,int>;
     var indexLastAttempted: map<int,int>;
     var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-    var couplesMatched: int := 0;
-    while (couplesMatched < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
-      invariant 0 <= couplesMatched <= |men|
+    while (|matched| < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
       //invariant couplesMatched <= |matched|
       // having problems proving that on every iteration decreases, because it doesn't
       // sometimes the amount of people matched stays the same
@@ -166,7 +164,6 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
             var man_matched_index: int := Find(preferences, man_matched); // get index on preference list of woman for current mate
             if (currentMan_index < man_matched_index) { // if index of current man is higher on preference list than the matched mate
               matched := map i | i in matched && i != currentWoman :: matched[i]; // remove original woman-man pair from matched
-              couplesMatched := couplesMatched - 1;
               matched := matched[currentWoman := currentMan]; // add current Man with his highestpreferred woman to mapping
               print "  man ";
               print currentMan;
@@ -191,7 +188,6 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
               print "\n";*/
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }
-      couplesMatched := couplesMatched + 1;
       // man should be matched by this point
       currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
       /*if (|matched| == |men|){
