@@ -100,8 +100,8 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
     var matched: map<int,int>;
     var indexLastAttempted: map<int,int>;
     var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-    var currentPrefIndex: int := 0; // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
-    while (|matched| < |men| && currentMan in men.Keys && currentMan !in matched.Values && men[currentMan].Length > currentPrefIndex) // while cardinality of matched is less than that of men
+    //var currentPrefIndex: int := 0; && men[currentMan].Length > currentPrefIndex // set current woman to top of preference list (so that we immediately go for highest ranking woman on currentMan's list)
+    while (|matched| < |men| && currentMan in men.Keys && currentMan !in matched.Values) // while cardinality of matched is less than that of men
       //invariant 0 <= couplesMatched <= |men|
       //invariant couplesMatched <= |matched|
       // having problems proving that on every iteration decreases, because it doesn't
@@ -126,15 +126,21 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
         } else {
           currentPrefIndex := 0;
         }*/
-        if (currentMan !in indexLastAttempted || )
-
+        //if (currentMan !in indexLastAttempted || currentPrefIndex > indexLastAttempted[currentMan])
+        var currentPrefIndex: int;
+        if (currentMan in indexLastAttempted && indexLastAttempted[currentMan] >= 0 && indexLastAttempted[currentMan] < (preferences.Length - 1)){
+          currentPrefIndex := indexLastAttempted[currentMan]; // set currentPrefIndex to the index this man tried last on his pref list
+          currentPrefIndex := currentPrefIndex + 1; // incremement so we go on to the next woman (don't repeat a proposal)
+        } else {
+          currentPrefIndex := 0; // if indexLastAttempted not defined for currentMan, means this is the first time the man is proposing, so start at beginning of pref list (index 0)
+        }
         while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
           //invariant (currentMan in indexLastAttempted) ==> 0 <= indexLastAttempted[currentMan] < preferences.Length
-          invariant 0 <= currentPrefIndex < preferences.Length
+          invariant 0 <= currentPrefIndex <= preferences.Length
           decreases (preferences.Length - currentPrefIndex) // means that our amount of women gets smaller accross each iteration
         {
           //if (currentMan !in indexLastAttempted || currentPrefIndex > indexLastAttempted[currentMan]){ // if index hasn't been encountered yet
-            indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
+          indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
           var currentWoman: int := preferences[currentPrefIndex]; // starting at index 0 of preferences list, highestPreferred woman will be named first
           if (currentWoman !in matched.Keys && currentWoman in women) { // if the highestPreferred woman is not found in the matched mapping == if highest preferred woman free
             matched := matched[currentWoman := currentMan]; // add current highestpreferred woman and current man to mapping
