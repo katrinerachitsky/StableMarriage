@@ -67,8 +67,6 @@ decreases *{
     print " woman ", i, " man ", results[i], "\n";
     i := i + 1;
   } /* solution is  woman 0 man 1, woman 1 man 2, woman 2 man 0*/
-  //assert (forall i :: 0 <= i < |results| && i in results.Keys && i in women);
-  //assert forall i :: 0 <= i < |results| ==> i in results.Values && i in men;
 }
 
 method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
@@ -84,24 +82,16 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
     var matched: map<int,int>;
     var indexLastAttempted: map<int,int> := initMen(men.Keys);
     //var indexLastAttempted: map<int,int>;
-    assert (forall i :: 0 <= i < |men.Keys| ==> i in indexLastAttempted && i in men && indexLastAttempted[i] == -1);
+    assert (forall i :: 0 <= i < |men.Keys| && i in men ==> i in indexLastAttempted && indexLastAttempted[i] == -1); // proves that for every man in men, that man is also in indexLastAttempted and the value there is -1 (initally)
     var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-    //indexLastAttempted := indexLastAttempted[currentMan := -1];
-    //assert currentMan in indexLastAttempted;
     assert ((currentMan == |men.Keys - matched.Values| ==> forall i :: 0 <= i < |men.Keys - matched.Values| ==> i !in (men.Keys - matched.Values)) || (currentMan < |men.Keys - matched.Values| ==> currentMan in men.Keys - matched.Values));
     var currentPrefIndex: int;
-    var freeMen : set<int> := men.Keys - matched.Values;
-    
-    while (men.Keys - matched.Values != {} && currentMan in men && currentMan in indexLastAttempted && indexLastAttempted[currentMan] < men[currentMan].Length) // while the set of men who are not engaged yet is not empty
-      //decreases men[currentMan].Length - indexLastAttempted[currentMan]
+    while (currentMan in men.Keys - matched.Values) // while the set of men who are not engaged yet is not empty
       decreases *
       invariant 0 <= |men.Keys - matched.Values|
-      //invariant currentMan in indexLastAttempted
-      //invariant 0 <= currentMan <= |men|
     {
-      //assert currentMan in indexLastAttempted;
         var preferences: array := men[currentMan]; // get preference list for current man
-        if (0 <= indexLastAttempted[currentMan] < (preferences.Length - 1)){
+        if (currentMan in indexLastAttempted && 0 <= indexLastAttempted[currentMan] < (preferences.Length - 1)){
           currentPrefIndex := indexLastAttempted[currentMan]; // set currentPrefIndex to the index this man tried last on his pref list
           currentPrefIndex := currentPrefIndex + 1; // incremement so we go on to the next woman (don't repeat a proposal)
         } else {
@@ -109,11 +99,6 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
         }
         while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
           invariant 0 <= currentPrefIndex <= preferences.Length
-          
-          //invariant (currentMan !in indexLastAttempted || currentPrefIndex <= indexLastAttempted[currentMan] < preferences.Length)
-          // for each woman before the currentone, she has preferred somebody else
-          //invariant forall i :: 0 <= i < currentPrefIndex ==> preferences[i] in matched
-          //invariant (preferences[currentPrefIndex] !in matched.Keys ||  )
           decreases (preferences.Length - currentPrefIndex) // means that our amount of women gets smaller accross each iteration, loop terminates when we've exhausted all preferences on a man's list
         {
           indexLastAttempted := indexLastAttempted[currentMan := currentPrefIndex];
@@ -138,11 +123,6 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
       currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
       assert ((currentMan == |men| ==> forall i :: 0 <= i < |men.Keys| ==> i !in men.Keys || i in matched.Values) || (currentMan < |men| ==> currentMan in men.Keys && currentMan !in matched.Values)); // making sure that the next man chosen from the method call above is not yet engaged
     } // end of men needing a match
-    /*var noman := getFreeMan(men.Keys, matched.Values);
-    assert (noman == |men| ==> forall i :: 0 <= i < |men.Keys| ==> i !in men.Keys || i in matched.Values);*/
-    //assert (men.Keys - matched.Values == {});
-    // loop has been exited
-    // which means getFreeMan returned an index larger than |men|
     matched_output := matched;
     return matched_output;
 }
