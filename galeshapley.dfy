@@ -69,33 +69,30 @@ decreases *{
   } /* solution is  woman 0 man 1, woman 1 man 2, woman 2 man 0*/
 }
 
-method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)  // matched array is a mapping of women to their respective mate
-  // require each person on preference list to be in the women keys mapping, and vice versa for men
-  decreases *;
-  requires |men| != 0; // requires cardinality of men map to be non-zero
-  requires |women| != 0;
-  requires |men| == |women| // requires cardinality of men and women maps to be equal
-  requires forall i :: 0 <= i < |men| ==> i in men && men[i] != null && men[i].Length == |women| // checks that for each possible key in domain, this key exists in the mapping, that the array (value) associated with this key is non-empty and that it contains exactly the amount of entries as each map (the domain)
-  requires forall i :: 0 <= i < |women| ==> i in women && women[i] != null && women[i].Length == |men| // checks the same for women's list
+method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns (matched_output: map<int, int>)
+  decreases *
+  requires |men| != 0 // requires cardinality of men map to be non-zero
+  requires |women| != 0
+  requires |men| == |women| // requires cardinality of men and women maps to 	be equal
+  requires forall i :: 0 <= i < |men| ==> i in men && men[i] != null && 		men[i].Length == |women|
+ requires forall i :: 0 <= i < |women| ==> i in women && women[i] != null && 	women[i].Length == |men|
   
   {
     var matched: map<int,int>;
     var indexLastAttempted: map<int,int> := initMen(men.Keys);
-    //var indexLastAttempted: map<int,int>;
-    assert (forall i :: 0 <= i < |men.Keys| && i in men ==> i in indexLastAttempted && indexLastAttempted[i] == -1); // proves that for every man in men, that man is also in indexLastAttempted and the value there is -1 (initally)
-    var currentMan: int := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-    assert ((currentMan == |men.Keys - matched.Values| ==> forall i :: 0 <= i < |men.Keys - matched.Values| ==> i !in (men.Keys - matched.Values)) || (currentMan < |men.Keys - matched.Values| ==> currentMan in men.Keys - matched.Values));
+    assert (forall i :: 0 <= i < |men.Keys| && i in men ==> i in 				indexLastAttempted && indexLastAttempted[i] == -1);
+    var currentMan: int := getFreeMan(men.Keys, matched.Values);
+    assert ((currentMan == |men.Keys - matched.Values| ==> forall i :: 0 <= 		i < |men.Keys - matched.Values| ==> i !in (men.Keys - matched.Values)) 	|| (currentMan < |men.Keys - matched.Values| ==> currentMan in 			men.Keys - matched.Values));
     var currentPrefIndex: int;
-    while (currentMan in men.Keys - matched.Values) // while the set of men who are not engaged yet is not empty
-      decreases *
-      invariant 0 <= |men.Keys - matched.Values|
+    while (currentMan in men.Keys - matched.Values)
+     decreases *
+     invariant 0 <= |men.Keys - matched.Values|
     {
-        var preferences: array := men[currentMan]; // get preference list for current man
-        if (currentMan in indexLastAttempted && 0 <= indexLastAttempted[currentMan] < (preferences.Length - 1)){
-          currentPrefIndex := indexLastAttempted[currentMan]; // set currentPrefIndex to the index this man tried last on his pref list
-          currentPrefIndex := currentPrefIndex + 1; // incremement so we go on to the next woman (don't repeat a proposal)
-        } else {
-          currentPrefIndex := 0; // if indexLastAttempted not defined for currentMan, means this is the first time the man is proposing, so start at beginning of pref list (index 0)
+        var preferences: array := men[currentMan];
+        if (currentMan in indexLastAttempted && 0 <= 							indexLastAttempted[currentMan] < (preferences.Length - 1)){
+          	currentPrefIndex := indexLastAttempted[currentMan];         			currentPrefIndex := currentPrefIndex + 1;
+       } else {
+          currentPrefIndex := 0;
         }
         while (currentPrefIndex < preferences.Length) // while we have not reached the end of the preferences list
           invariant 0 <= currentPrefIndex <= preferences.Length
@@ -119,9 +116,8 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
           }
         currentPrefIndex := currentPrefIndex + 1; // move on to the next woman for next iter of while loop
       }
-      // man should be matched by this point
-      currentMan := getFreeMan(men.Keys, matched.Values); // calls getFreeMan to find first man from set of men and finds a man not in the matched values yet
-      assert ((currentMan == |men| ==> forall i :: 0 <= i < |men.Keys| ==> i !in men.Keys || i in matched.Values) || (currentMan < |men| ==> currentMan in men.Keys && currentMan !in matched.Values)); // making sure that the next man chosen from the method call above is not yet engaged
+      currentMan := getFreeMan(men.Keys, matched.Values); 
+     assert ((currentMan == |men| ==> forall i :: 0 <= i < |men.Keys| ==> 		i !in men.Keys || i in matched.Values) || (currentMan < |men| ==> 		currentMan in men.Keys && currentMan !in matched.Values));
     } // end of men needing a match
     matched_output := matched;
     return matched_output;
