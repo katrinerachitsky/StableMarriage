@@ -27,6 +27,8 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
   requires |men| == |women|
   requires forall i :: 0 <= i < |men| ==> i in men && men[i] != null && men[i].Length == |women| && (forall j :: 0 <= j < men[i].Length ==> (men[i])[j] in women.Keys) 
   requires forall i :: 0 <= i < |women| ==> i in women && women[i] != null && women[i].Length == |men| && (forall j :: 0 <= j < women[i].Length ==> (women[i])[j] in men.Keys) 
+  // ensures forall i :: 0 <= i < |men| ==> i in matched_output.Values;
+  // ensures forall i :: 0 <= i < |women| ==> i in matched_output.Keys;
   {
     var matched: map<int,int>;
     var indexLastAttempted: map<int,int> := initMen(men.Keys);
@@ -37,6 +39,8 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
     while (currentMan in men.Keys - matched.Values)
      decreases *
      invariant 0 <= |men.Keys - matched.Values|
+     // invariant -1 <= indexLastAttempted[currentMan] <= |women|
+     // decreases |women| - indexLastAttempted[currentMan]
     {
         var preferences: array := men[currentMan];
         if (currentMan in indexLastAttempted && 0 <= indexLastAttempted[currentMan] < (preferences.Length - 1)){
@@ -47,6 +51,7 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
        }
         while (currentPrefIndex < preferences.Length)
           invariant 0 <= currentPrefIndex <= preferences.Length
+          // invariant -1 <= indexLastAttempted[currentMan] <= |women|
           decreases (preferences.Length - currentPrefIndex)
               {
               indexLastAttempted := indexLastAttempted[currentMan :=        currentPrefIndex];
@@ -70,6 +75,8 @@ method matching(men: map<int, array<int>>, women: map<int, array<int>>) returns 
         currentMan := getFreeMan(men.Keys, matched.Values); 
         assert ((currentMan == |men| ==> forall i :: 0 <= i < |men.Keys| ==>     i !in men.Keys || i in matched.Values) || (currentMan < |men| ==>     currentMan in men.Keys && currentMan !in matched.Values));
     }
+    // assert forall i :: 0 <= i < |men| ==> i in matched.Values;
+    // assert forall i :: 0 <= i < |women| ==> i in matched.Keys;
     matched_output := matched;
     return matched_output;
 }
